@@ -8,11 +8,13 @@ import pixel from 'node-pixel';
 import _ from 'lodash';
 
 const app = express();
+const port = process.env.PORT || 3000;
 const hostname = 'localhost';
 
-const localIP = os
-	.networkInterfaces()
-	.en0.find((a) => a.family === 'IPv4').address;
+const localIP =
+	process.env.NODE_ENV !== 'production'
+		? os.networkInterfaces().en0.find((a) => a.family === 'IPv4').address
+		: undefined;
 
 // Set up socket server
 const key = fs.readFileSync('localhost-key.pem', 'utf-8');
@@ -132,7 +134,7 @@ board.on('ready', function () {
 });
 
 // Start up server and log addresses for local and network
-const startServer = (port = 3000) => {
+const startServer = () => {
 	server.listen(port, '0.0.0.0', () => {
 		console.log(`Listening at https://${hostname}:${port}`);
 		if (localIP) console.log(`On Network at http://${localIP}:${port}`);
