@@ -6,6 +6,7 @@ import * as socketIo from 'socket.io';
 import five from 'johnny-five';
 import pixel from 'node-pixel';
 import _ from 'lodash';
+import { scheduler } from 'node:timers/promises';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -51,20 +52,12 @@ const unsubscribe = (id) => {
 	console.log(`Disconnected from ${id}.`);
 };
 
-// const colors = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'white'];
-const colors = ['blue', 'yellow'];
-function getRandomColor(color = null) {
-	const randomInt = _.floor(_.random(colors.length - 1));
-	const randomColor = colors[randomInt];
-
-	if (color !== null && color === randomColor) return getRandomColor(color);
-	else return randomColor;
-}
-
-let randomColor1 = getRandomColor();
-let randomColor2 = getRandomColor();
-
 let strip = null;
+let colors = ['#8F8', '#F66'];
+
+let savedState = 0;
+let index = 0;
+
 const board = new five.Board({ repl: false });
 board.on('ready', function () {
 	// Define our hardware
@@ -75,42 +68,34 @@ board.on('ready', function () {
 		gamma: 2.8,
 	});
 
-	const turnOnStrip = (color, start = 0, end = NUM_LEDS) => {
-		if (start === 0 && end === NUM_LEDS) strip.color(color);
-		else {
-			for (const i of _.range(start, end)) {
-				strip.pixel(i).color(color);
-			}
+	const turnOnStrip = async (delay = 100) => {
+		for (index = 0; index < NUM_LEDS - NUM_LED_SEPARATE; index++) {
+			const col = savedState == 2 ? 0 : 1;
+
+			if (index < NUM_LED_SEPARATE) strip.pixel(index).color(colors[0]);
+			strip.pixel(index + NUM_LED_SEPARATE).color(colors[col]);
+			strip.show();
+
+			await scheduler.wait(1000 / delay);
 		}
-
-		// Send instructions to LED strip
-		strip.show();
 	};
-	const turnOffStrip = (start = 0, end = NUM_LEDS) => {
-		turnOnStrip('#000', start, end);
+	const turnOffStrip = () => {
+		strip.off();
 	};
 
-	// Just like DOM-ready for web developers
 	strip.on('ready', function () {
-		// Turn off the entire strip
-		turnOffStrip();
+		console.log("Strip ready, let's go");
 	});
 
 	// Turn the Led on or off and update the state
 	function toggleStrips(state, id) {
 		console.log(`State: ${state}`);
+		savedState = state;
 
 		if (state == 0) {
 			turnOffStrip();
-
-			randomColor1 = getRandomColor();
-			randomColor2 = getRandomColor(randomColor1);
-		} else if (state == 1) {
-			turnOnStrip(randomColor1, 0, NUM_LED_SEPARATE);
-			turnOffStrip(NUM_LED_SEPARATE, NUM_LEDS);
-		} else if (state >= 2) {
-			turnOnStrip(randomColor1, 0, NUM_LED_SEPARATE);
-			turnOnStrip(randomColor2, NUM_LED_SEPARATE, NUM_LEDS);
+		} else if (state >= 1) {
+			turnOnStrip();
 		}
 	}
 
