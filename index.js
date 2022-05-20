@@ -31,13 +31,13 @@ const unsubscribe = (id) => {
 };
 
 // Notify all subscribers of message
-function emitMessage(message) {
+function emitMessage(data) {
 	console.log(
-		(message ? `Message: \'${message.text}\'` : 'No message') +
-			`, Subscribers: ${subscribers.size}, Sender: ${message.id}`
+		(data ? `Message: \'${data.text}\'` : 'No message') +
+			`, Subscribers: ${subscribers.size}, Sender: ${data.id}`
 	);
 	subscribers.forEach((socket, id) => {
-		if (id !== message.id) socket.emit('receive-message', message);
+		if (id !== data.id) socket.emit('receive-message', data.message);
 	});
 }
 
