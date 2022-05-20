@@ -33,7 +33,7 @@ const unsubscribe = (id) => {
 // Notify all subscribers of message
 function emitMessage(data) {
 	console.log(
-		(data ? `Message: \'${data.text}\'` : 'No message') +
+		(data.message ? `Message: \'${data.text}\'` : 'No message') +
 			`, Subscribers: ${subscribers.size}, Sender: ${data.id}`
 	);
 	subscribers.forEach((socket, id) => {
