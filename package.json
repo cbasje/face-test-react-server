@@ -5,7 +5,8 @@
 	"main": "index.js",
 	"license": "MIT",
 	"scripts": {
-		"start": "node index.js"
+		"start": "node index.js",
+		"dev": "nodemon index.js"
 	},
 	"dependencies": {
 		"express": "^4.18.1",
@@ -14,6 +15,7 @@
 		"johnny-five": "^2.1.0",
 		"lodash": "^4.17.21",
 		"node-pixel": "^0.11.0",
+		"nodemon": "^2.0.16",
 		"os": "^0.1.2",
 		"socket.io": "^4.5.0"
 	}
