@@ -33,7 +33,7 @@ const unsubscribe = (id) => {
 // Notify all subscribers of message
 function emitMessage(data) {
 	console.log(
-		`emitMessage: ${data.state}, Subscribers: ${subscribers.size}, Sender: ${data.id}`
+		`Message: ${data.message}, Subscribers: ${subscribers.size}, Sender: ${data.id}`
 	);
 	subscribers.forEach((socket, id) => {
 		if (id !== data.id) socket.emit('receive-message', data.message);
@@ -49,6 +49,7 @@ io.on('connection', (socket) => {
 	subscribe(id, socket);
 
 	socket.on('send-message', (message) => {
+		console.log(`Message: ${message}`);
 		emitMessage({ message, id });
 	});
 
