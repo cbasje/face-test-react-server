@@ -9,10 +9,13 @@
 		"dev": "nodemon index.js"
 	},
 	"dependencies": {
-		"cors": "^2.8.5",
 		"express": "^4.18.1",
+		"fs": "^0.0.1-security",
+		"https": "^1.0.0",
+		"johnny-five": "^2.1.0",
 		"lodash": "^4.17.21",
 		"node-pixel": "^0.11.0",
+		"os": "^0.1.2",
 		"socket.io": "^4.5.0"
 	},
 	"devDependencies": {
