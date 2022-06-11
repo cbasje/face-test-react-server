@@ -52,7 +52,10 @@ const unsubscribe = (id) => {
 	console.log(`Disconnected from ${id}.`);
 };
 
-let servo = null;
+const TRUNK_TIMEOUT = 15 * 1000;
+
+let frontDoor = null;
+let trunk = null;
 let strip = null;
 let colors = ['#8F8', '#F66'];
 
@@ -62,16 +65,31 @@ let index = 0;
 const board = new five.Board({ repl: false });
 board.on('ready', function () {
 	// Define our hardware
-	servo = new five.Servo({
+	frontDoor = new five.Servo({
 		pin: 3,
 		range: [0, 180],
 		startAt: 0,
 	});
+	trunk = new five.Motor({
+		controller: 'GROVE_I2C_MOTOR_DRIVER',
+		pin: 'A',
+	});
+
 	strip = new pixel.Strip({
 		board: this,
 		controller: 'FIRMATA',
 		strips: [{ pin: 6, length: NUM_LEDS }],
 		gamma: 2.8,
+	});
+
+	trunk.on('forward', async () => {
+		await scheduler.wait(TRUNK_TIMEOUT);
+		trunk.stop();
+	});
+
+	trunk.on('reverse', async () => {
+		await scheduler.wait(TRUNK_TIMEOUT);
+		trunk.stop();
 	});
 
 	const turnOnDoor = async (door) => {
@@ -94,14 +112,14 @@ board.on('ready', function () {
 		begin = 0,
 		end = NUM_LEDS,
 		color = '#FFF',
-		delay = 100
+		delay = 10
 	) => {
 		for (index = 0; index < NUM_LEDS; index++) {
 			if (index >= begin && index <= end) {
 				strip.pixel(index).color(color);
 				strip.show();
 
-				await scheduler.wait(1000 / delay);
+				await scheduler.wait(delay);
 			} else {
 				strip.pixel(index).color('#000');
 				strip.show();
@@ -123,17 +141,36 @@ board.on('ready', function () {
 
 		turnOffStrip();
 		turnOnDoor(door);
-
 		await scheduler.wait(1000);
-		servo.to(180);
+
+		switch (door) {
+			case 'f':
+				frontDoor.to(180);
+				break;
+			case 'b':
+				break;
+			case 't':
+				trunk.fwd(255);
+				break;
+		}
 	}
+
 	async function closeDoor(door, id) {
 		console.log(`Close door: ${door}`);
 
 		turnOffStrip();
+		await scheduler.wait(1000);
 
-		// await scheduler.wait(1000);
-		servo.to(0);
+		switch (door) {
+			case 'f':
+				frontDoor.to(0);
+				break;
+			case 'b':
+				break;
+			case 't':
+				trunk.rev(255);
+				break;
+		}
 	}
 
 	// Send a welcome to the user
